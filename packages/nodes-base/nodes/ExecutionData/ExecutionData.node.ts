@@ -7,7 +7,8 @@ import type {
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 type DataToSave = {
-	values: Array<{ key: string; value: string }>;
+	// Expressions can resolve to non-string primitives
+	values: Array<{ key: string; value: string | number | boolean }>;
 };
 
 export class ExecutionData implements INodeType {
@@ -120,6 +121,10 @@ export class ExecutionData implements INodeType {
 
 					const values = dataToSave.reduce(
 						(acc, { key, value }) => {
+							if (typeof value === 'boolean' || typeof value === 'number') {
+								acc[key] = String(value);
+								return acc;
+							}
 							const valueToSet = value ? value : nodeVersion >= 1.1 ? '' : value;
 							acc[key] = valueToSet;
 							return acc;
